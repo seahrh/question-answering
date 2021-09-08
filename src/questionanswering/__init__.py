@@ -1,6 +1,14 @@
-__all__ = ["dice_coefficient"]
+import logging
+from logging.config import fileConfig
 
-# log = get_logger()
+__all__ = ["get_logger", "dice_coefficient"]
+
+
+def get_logger(name: str = None):
+    fileConfig("logging.ini", defaults={"logdir": "tmp"})
+    # suppress matplotlib logging
+    logging.getLogger(name="matplotlib").setLevel(logging.WARNING)
+    return logging.getLogger(name)
 
 
 def dice_coefficient(

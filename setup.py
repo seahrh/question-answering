@@ -6,7 +6,6 @@ setup(
     version=__version__,
     python_requires="~=3.7",
     install_requires=[
-        "numpy==1.21.2",  # fix caffe2 ImportError: No module named 'numpy.core._multiarray_umath'
         "optuna==2.9.1",
         "pandas==1.3.2",
         "pyarrow==5.0.0",
