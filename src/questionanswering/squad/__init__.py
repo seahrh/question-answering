@@ -1,11 +1,11 @@
 import torch
 import pytorch_lightning as pl
 from transformers import AutoConfig, AutoModelForQuestionAnswering, AdamW, BatchEncoding
-from typing import Tuple, List
+from typing import Tuple, List, Union, Dict
 import questionanswering as qa
 
 __all__ = ["Dataset", "Model", "position_labels"]
-
+ParamType = Union[str, int, float, bool]
 log = qa.get_logger()
 
 
@@ -52,27 +52,62 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class Model(pl.LightningModule):
-    def __init__(self, pretrained_dir: str, gradient_checkpointing: bool, lr: float):
+    def __init__(
+        self,
+        pretrained_dir: str,
+        gradient_checkpointing: bool,
+        lr: float,
+        scheduler_params: Dict[str, ParamType],
+        swa_start_epoch: int = -1,
+        swa_scheduler_params: Dict[str, ParamType] = None,
+    ):
         super().__init__()
+        self.automatic_optimization = False
         self.lr = lr
+        self.scheduler_params = scheduler_params
+        self.swa_start_epoch = swa_start_epoch
+        self.swa_scheduler_params = swa_scheduler_params
         config = AutoConfig.from_pretrained(pretrained_dir)
         config.gradient_checkpointing = gradient_checkpointing
-        self.model = AutoModelForQuestionAnswering.from_pretrained(
+        self.base_model = AutoModelForQuestionAnswering.from_pretrained(
             pretrained_dir, config=config
         )
+        self.model = self.base_model
+        if self.swa_start_epoch >= 0:
+            self.swa_model = torch.optim.swa_utils.AveragedModel(self.base_model)
+            self.model = self.swa_model.module
         self.register_buffer("start_logits", torch.zeros(1))
         self.register_buffer("end_logits", torch.zeros(1))
+        self._has_swa_started: bool = False
 
     def training_step(self, batch, batch_idx):
-        outputs = self.model(**batch)
+        outputs = self.base_model(**batch)
         loss = outputs.loss
+        opt = self.optimizers()
+        opt.zero_grad()
+        self.manual_backward(loss)
+        opt.step()
+        if self.trainer.is_last_batch:
+            schedulers = self.lr_schedulers()
+            if (
+                len(schedulers) == 2
+                and self.trainer.current_epoch >= self.swa_start_epoch
+            ):
+                self.swa_model.update_parameters(self.base_model)
+                schedulers[1].step()
+                self._has_swa_started = True
+            else:
+                schedulers[0].step()
         self.log(
             "train_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True
         )
         return loss
 
     def validation_step(self, batch, batch_idx):
-        outputs = self.model(**batch)
+        model = self.base_model
+        if self._has_swa_started:
+            model = self.swa_model
+        outputs = model(**batch)
         loss = outputs.loss
         self.log(
             "val_loss",
@@ -103,5 +138,14 @@ class Model(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        optimizer = AdamW(self.parameters(), lr=self.lr, correct_bias=True)
-        return optimizer
+        optimizers = [AdamW(self.parameters(), lr=self.lr, correct_bias=True)]
+        schedulers = [
+            torch.optim.lr_scheduler.CosineAnnealingLR(
+                optimizers[0], **self.scheduler_params
+            )
+        ]
+        if self.swa_start_epoch >= 0:
+            schedulers.append(
+                torch.optim.swa_utils.SWALR(optimizers[0], **self.swa_scheduler_params)
+            )
+        return optimizers, schedulers
