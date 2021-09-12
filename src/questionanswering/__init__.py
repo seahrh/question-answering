@@ -1,7 +1,9 @@
+import os
 import logging
 from logging.config import fileConfig
+import pytorch_lightning as pl
 
-__all__ = ["get_logger", "dice_coefficient"]
+__all__ = ["get_logger", "dice_coefficient", "HfTrainer"]
 
 
 def get_logger(name: str = None):
@@ -23,3 +25,11 @@ def dice_coefficient(
         range(pred_start, pred_end + 1)
     )
     return 2 * len(intersection) / (t_len + p_len)
+
+
+class HfTrainer(pl.Trainer):  # type: ignore
+    def save_checkpoint(self, filepath, weights_only=False):
+        if self.is_global_zero:
+            dirpath = os.path.split(filepath)[0]
+            lightning_module = self.get_model()
+            lightning_module.model.save_pretrained(dirpath)
