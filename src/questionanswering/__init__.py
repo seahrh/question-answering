@@ -1,4 +1,5 @@
 import os
+import pathlib
 import logging
 from logging.config import fileConfig
 import pytorch_lightning as pl
@@ -7,7 +8,11 @@ __all__ = ["get_logger", "dice_coefficient", "HfTrainer"]
 
 
 def get_logger(name: str = None):
-    fileConfig("logging.ini", defaults={"logdir": "tmp"})
+    filepath = "../logging.ini"
+    p = pathlib.Path(filepath)
+    if not p.is_file():
+        raise ValueError(f"File does not exist: {filepath}")
+    fileConfig(str(p), defaults={"logdir": "tmp"})
     # suppress matplotlib logging
     logging.getLogger(name="matplotlib").setLevel(logging.WARNING)
     return logging.getLogger(name)
@@ -31,5 +36,4 @@ class HfTrainer(pl.Trainer):  # type: ignore
     def save_checkpoint(self, filepath, weights_only=False):
         if self.is_global_zero:
             dirpath = os.path.split(filepath)[0]
-            lightning_module = self.get_model()
-            lightning_module.model.save_pretrained(dirpath)
+            self.lightning_module.model.save_pretrained(dirpath)
