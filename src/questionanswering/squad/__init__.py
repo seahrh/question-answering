@@ -4,7 +4,7 @@ from transformers import AutoConfig, AutoModelForQuestionAnswering, AdamW, Batch
 from typing import Tuple, List, Union, Dict
 import questionanswering as qa
 
-__all__ = ["Dataset", "Model", "position_labels"]
+__all__ = ["Dataset", "Model", "position_labels", "is_valid_answer"]
 ParamType = Union[str, int, float, bool]
 log = qa.get_logger()
 
@@ -38,6 +38,19 @@ def position_labels(
         start_positions.append(j)
         end_positions.append(k)
     return start_positions, end_positions
+
+
+def is_valid_answer(
+    i: int, j: int, start_score: float, end_score: float, special_tokens_mask
+) -> bool:
+    if j <= i:
+        return False
+    if start_score <= 0:
+        return False
+    if end_score <= 0:
+        return False
+    has_special_tokens: bool = bool(torch.any(special_tokens_mask[i:j]).item())
+    return not has_special_tokens
 
 
 class Dataset(torch.utils.data.Dataset):
