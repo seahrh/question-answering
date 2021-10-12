@@ -4,7 +4,7 @@ import logging
 from logging.config import fileConfig
 import pytorch_lightning as pl
 
-__all__ = ["get_logger", "dice_coefficient", "HfTrainer"]
+__all__ = ["get_logger", "dice_coefficient", "Trainer"]
 
 
 def get_logger(name: str = None):
@@ -32,8 +32,12 @@ def dice_coefficient(
     return 2 * len(intersection) / (t_len + p_len)
 
 
-class HfTrainer(pl.Trainer):  # type: ignore
+class Trainer(pl.Trainer):  # type: ignore
     def save_checkpoint(self, filepath, weights_only=False):
         if self.is_global_zero:
             dirpath = os.path.split(filepath)[0]
             self.lightning_module.model.save_pretrained(dirpath)
+            # save oof predictions from best model
+            self.lightning_module.best_val_start = self.lightning_module.val_start
+            self.lightning_module.best_val_end = self.lightning_module.val_end
+            print(f"Epoch {self.current_epoch}: save_checkpoint")
