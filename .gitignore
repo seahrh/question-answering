@@ -1,7 +1,7 @@
 input/
 output/
 models/
-pretrained/
+pretrained
 .idea/
 
 # Byte-compiled / optimized / DLL files

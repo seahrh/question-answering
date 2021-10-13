@@ -1,12 +1,85 @@
+import json
+import pathlib
+import numpy as np
+import pandas as pd
 import torch
 import pytorch_lightning as pl
 from transformers import AutoConfig, AutoModelForQuestionAnswering, AdamW, BatchEncoding
+from tqdm import tqdm
 from typing import Tuple, List, Union, Dict
+from scml import nlp as snlp
 import questionanswering as qa
 
-__all__ = ["Dataset", "Model", "position_labels", "is_valid_answer"]
+
+__all__ = [
+    "preprocess",
+    "parse_json_file",
+    "Dataset",
+    "Model",
+    "position_labels",
+    "is_valid_answer",
+]
 ParamType = Union[str, int, float, bool]
 log = qa.get_logger()
+
+
+def preprocess(s: str) -> str:
+    """Preprocess question, context and answer strings for training."""
+    res: str = snlp.to_str(s)
+    res = res.replace("‘", "'")  # opening single quote
+    res = res.replace("’", "'")  # closing single quote
+    res = res.replace("“", '"')  # opening double quote
+    res = res.replace("”", '"')  # closing double quote
+    res = " ".join(res.split())
+    return res
+
+
+def parse_json_file(filepath: str) -> pd.DataFrame:
+    path = pathlib.Path(filepath)
+    with open(path) as f:
+        squad_dict = json.load(f)
+    rows = []
+    for group in tqdm(squad_dict["data"]):
+        title = group["title"]
+        for passage in group["paragraphs"]:
+            context = preprocess(passage["context"])
+            for _qa in passage["qas"]:
+                _id = _qa["id"]
+                is_impossible = _qa["is_impossible"]
+                question = preprocess(_qa["question"])
+                if is_impossible:
+                    row = {
+                        "id": _id,
+                        "title": title,
+                        "question": question,
+                        "answer_start": -1,
+                        "answer_text": "",
+                        "context": context,
+                    }
+                    rows.append(row)
+                    continue
+                for a in _qa["answers"]:
+                    row = {
+                        "id": _id,
+                        "title": title,
+                        "question": question,
+                        "answer_text": preprocess(a["text"]),
+                        "context": context,
+                    }
+                    i = a["answer_start"]
+                    j = a["answer_start"] + len(row["answer_text"])
+                    while i > 0 and row["answer_text"] != context[i:j]:
+                        i -= 1
+                        j -= 1
+                    if row["answer_text"] != context[i:j]:
+                        raise ValueError(
+                            f"answer text must equal answer span. Expecting [{a['text']}] but found [{context[i:j]}]"
+                        )
+                    row["answer_start"] = i
+                    rows.append(row)
+    df = pd.DataFrame.from_records(rows)
+    df["answer_start"] = df["answer_start"].astype(np.int16)
+    return df
 
 
 def position_labels(
