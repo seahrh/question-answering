@@ -1,15 +1,16 @@
 import json
 import pathlib
+from typing import Tuple, List, Union, Dict
+
 import numpy as np
 import pandas as pd
-import torch
 import pytorch_lightning as pl
-from transformers import AutoConfig, AutoModelForQuestionAnswering, AdamW, BatchEncoding
-from tqdm import tqdm
-from typing import Tuple, List, Union, Dict
+import torch
 from scml import nlp as snlp
-import questionanswering as qa
+from tqdm import tqdm
+from transformers import AutoConfig, AutoModelForQuestionAnswering, AdamW
 
+import questionanswering as qa
 
 __all__ = [
     "preprocess",
@@ -83,33 +84,37 @@ def parse_json_file(filepath: str) -> pd.DataFrame:
 
 
 def position_labels(
-    encodings: BatchEncoding,
+    offset_mapping: List[List[Tuple[int, int]]],
     answer_start: List[int],
-    answer_end: List[int],
-    ids: List[int],
-    is_impossible: List[int],
+    answer_length: List[int],
 ) -> Tuple[List[int], List[int]]:
     start_positions = []
     end_positions = []
-    for i in range(len(is_impossible)):
-        j, k = 0, 0
-        if is_impossible[i] == 0:
-            j = encodings.char_to_token(i, char_index=answer_start[i], sequence_index=1)
-            if j is None:
+    for k in range(len(offset_mapping)):
+        start = 0
+        end = 0
+        i = answer_start[k]
+        if i >= 0:
+            j = i + answer_length[k]
+            # reverse loop because tokenizer is padding_right
+            for t in range(len(offset_mapping[k]) - 1, -1, -1):
+                token_start, token_end = offset_mapping[k][t]
+                if token_end == 0 and token_end == 0:  # special token
+                    continue
+                if token_start == i:
+                    start = t
+                if token_end == j:
+                    end = t
+                if start != 0 and end != 0:
+                    break
+            if start == 0 and end == 0:
+                raise ValueError(f"answer span cannot be found! k={k}, i={i}, j={j}")
+            if end < start:
                 raise ValueError(
-                    f"start pos must not be None. i={i}, id={ids[i]}, answer_start={answer_start[i]}"
+                    f"end must not come before start. start={start}, end={end}"
                 )
-            k = encodings.char_to_token(
-                i, char_index=answer_end[i] - 1, sequence_index=1
-            )
-            if k is None:
-                raise ValueError(
-                    f"end pos must not be None. i={i}, id={ids[i]}, answer_end={answer_end[i]}"
-                )
-            if j > k:
-                raise ValueError("start pos must be less than or equals end pos")
-        start_positions.append(j)
-        end_positions.append(k)
+        start_positions.append(start)
+        end_positions.append(end)
     return start_positions, end_positions
 
 

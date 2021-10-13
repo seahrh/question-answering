@@ -8,7 +8,7 @@ __all__ = ["get_logger", "dice_coefficient", "Trainer"]
 
 
 def get_logger(name: str = None):
-    filepath = "../logging.ini"
+    filepath = os.getenv("LOGGING_INI", "../logging.ini")
     p = pathlib.Path(filepath)
     if not p.is_file():
         raise ValueError(f"File does not exist: {filepath}")
