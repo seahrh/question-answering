@@ -97,14 +97,18 @@ def position_labels(
     end_positions = []
     prev = None
     found = False
+    start, end = 0, 0
+    i, j = -1, -1
     for k in range(len(offset_mapping)):
         curr = overflow_to_sample_mapping[k]
         if prev is not None and prev != curr:
             if not found:
-                raise ValueError(f"answer span cannot be found! example={prev}")
+                raise ValueError(
+                    "answer span cannot be found!"
+                    f"\nprev={prev}, i={i}, j={j}, start={start}, end={end}, offsets={offset_mapping[k]}"
+                )
             found = False
-        start = 0
-        end = 0
+        start, end = 0, 0
         i = starts[k]
         if i >= 0:
             j = i + lengths[k]
@@ -132,7 +136,10 @@ def position_labels(
         prev = curr
     # check the last example!
     if not found:
-        raise ValueError(f"answer span cannot be found! example={prev}")
+        raise ValueError(
+            "answer span cannot be found!"
+            f"\nprev={prev}, i={i}, j={j}, start={start}, end={end}, offsets={offset_mapping[k]}"
+        )
     return start_positions, end_positions
 
 
