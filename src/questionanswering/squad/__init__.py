@@ -85,36 +85,54 @@ def parse_json_file(filepath: str) -> pd.DataFrame:
 
 def position_labels(
     offset_mapping: List[List[Tuple[int, int]]],
+    overflow_to_sample_mapping: List[int],
     answer_start: List[int],
     answer_length: List[int],
 ) -> Tuple[List[int], List[int]]:
+    starts, lengths = [], []
+    for i in overflow_to_sample_mapping:
+        starts.append(answer_start[i])
+        lengths.append(answer_length[i])
     start_positions = []
     end_positions = []
+    prev = None
+    found = False
     for k in range(len(offset_mapping)):
+        curr = overflow_to_sample_mapping[k]
+        if prev is not None and prev != curr:
+            if not found:
+                raise ValueError(f"answer span cannot be found! example={prev}")
+            found = False
         start = 0
         end = 0
-        i = answer_start[k]
+        i = starts[k]
         if i >= 0:
-            j = i + answer_length[k]
+            j = i + lengths[k]
             # reverse loop because tokenizer is padding_right
             for t in range(len(offset_mapping[k]) - 1, -1, -1):
                 token_start, token_end = offset_mapping[k][t]
-                if token_end == 0 and token_end == 0:  # special token
+                if token_end == 0:  # special token
                     continue
                 if token_start == i:
                     start = t
                 if token_end == j:
                     end = t
                 if start != 0 and end != 0:
+                    found = True
                     break
-            if start == 0 and end == 0:
-                raise ValueError(f"answer span cannot be found! k={k}, i={i}, j={j}")
             if end < start:
                 raise ValueError(
-                    f"end must not come before start. start={start}, end={end}"
+                    "end must not come before start."
+                    f"\ncurr={curr}, i={i}, j={j}, start={start}, end={end}, offsets={offset_mapping[k]}"
                 )
+        else:
+            found = True
         start_positions.append(start)
         end_positions.append(end)
+        prev = curr
+    # check the last example!
+    if not found:
+        raise ValueError(f"answer span cannot be found! example={prev}")
     return start_positions, end_positions
 
 
