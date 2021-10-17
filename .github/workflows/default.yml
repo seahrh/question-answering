@@ -12,6 +12,8 @@ jobs:
     strategy:
       matrix:
         python-version: [ 3.7 ]
+    env:
+      LOGGING_INI: logging.ini
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
