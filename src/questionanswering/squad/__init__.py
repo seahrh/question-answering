@@ -80,34 +80,23 @@ def parse_json_file(filepath: str) -> pd.DataFrame:
                     rows.append(row)
                     continue
                 for a in _qa["answers"]:
-                    row = {
-                        "id": _id,
-                        "title": title,
-                        "question": question,
-                        "answer_text": preprocess(a["text"]),
-                        "context": context,
-                    }
-                    i = a["answer_start"]
-                    d = len(row["answer_text"])
-                    at = row["answer_text"]
-                    j, k = -1, -1
-                    while i >= 0 and j == -1:
-                        if at == context[i : i + d]:
-                            j = i
-                        i -= 1
-                    i = a["answer_start"] + 1
-                    while i + d < len(context) and k == -1:
-                        if at == context[i : i + d]:
-                            k = i
-                        i += 1
-                    if j == -1 and k == -1:
+                    at = preprocess(a["text"])
+                    i = nearest(s=at, t=context, start=a["answer_start"])
+                    if i == -1:
                         raise ValueError(
-                            f"Cannot find answer inside context. a=[{row['answer_text']}]"
+                            f"Cannot find answer inside context. a=[{at}]"
                             f"\nq={question}\nc={context}"
                         )
-                    i = a["answer_start"]
-                    row["answer_start"] = j if i - j < k - i else k
-                    rows.append(row)
+                    rows.append(
+                        {
+                            "id": _id,
+                            "title": title,
+                            "question": question,
+                            "answer_text": at,
+                            "answer_start": i,
+                            "context": context,
+                        }
+                    )
     df = pd.DataFrame.from_records(rows)
     df["answer_start"] = df["answer_start"].astype(np.int16)
     return df
