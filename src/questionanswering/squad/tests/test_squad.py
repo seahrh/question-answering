@@ -79,11 +79,11 @@ class TestPositionLabels:
         with pytest.raises(ValueError, match=r"end must not come before start"):
             position_labels(
                 offset_mapping=[
-                    [(0, 0), (0, 9), (10, 20), (20, 30), (0, 0)],
+                    [(0, 0), (0, 10), (10, 20), (20, 30), (0, 0)],
                 ],
                 overflow_to_sample_mapping=[0],
-                answer_start=[0],
-                answer_length=[10],
+                answer_start=[20],
+                answer_length=[-10],
             )
 
     def test_throw_error_when_answer_cannot_be_found(self):
@@ -95,6 +95,15 @@ class TestPositionLabels:
                 overflow_to_sample_mapping=[0],
                 answer_start=[1],
                 answer_length=[10],
+            )
+        with pytest.raises(ValueError, match=r"answer span cannot be found"):
+            position_labels(
+                offset_mapping=[
+                    [(0, 0), (0, 10), (10, 20), (20, 30), (0, 0)],
+                ],
+                overflow_to_sample_mapping=[0],
+                answer_start=[0],
+                answer_length=[9],
             )
         with pytest.raises(ValueError, match=r"answer span cannot be found"):
             position_labels(
