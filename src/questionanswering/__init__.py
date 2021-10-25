@@ -38,11 +38,10 @@ def dice_coefficient(
     return 2 * len(intersection) / (t_len + p_len)
 
 
-REMOVAL_PATTERN = re.compile(r"[\"()]", re.IGNORECASE)
-ISOLATION_PATTERN = re.compile(r"([.,:;$]+)", re.IGNORECASE)
+REMOVAL_PATTERN = re.compile(r"[\"()\[\]]", re.IGNORECASE)
+ISOLATION_PATTERN = re.compile(r"([.,:;$%+*/\-])", re.IGNORECASE)
 LEADING_PUNCTUATION_PATTERN = re.compile(r"^[.,\-:;–'\"]+", re.IGNORECASE)
 TRAILING_PUNCTUATION_PATTERN = re.compile(r"[.,\-:;–'\"]+$", re.IGNORECASE)
-BULLET_POINT_PATTERN = re.compile(r"[*]+", re.IGNORECASE)
 REPEATED_QUOTES_PATTERN = re.compile(r"[']{2,}", re.IGNORECASE)
 ENCLOSURE_PATTERN = re.compile(r"[']+([^']+?)[']+", re.IGNORECASE)
 
@@ -59,7 +58,6 @@ def preprocess(s: str) -> str:
     # res = TRAILING_PUNCTUATION_PATTERN.sub("", res)
     # res = REPEATED_QUOTES_PATTERN.sub("", res)
     # res = ENCLOSURE_PATTERN.sub(r"\1", res)
-    # res = BULLET_POINT_PATTERN.sub(r" . ", res)
     res = ISOLATION_PATTERN.sub(r" \1 ", res)
     res = REMOVAL_PATTERN.sub("", res)
     res = " ".join(res.split())

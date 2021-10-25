@@ -37,11 +37,10 @@ class TestPreprocess:
     def test_compress_whitespace(self):
         assert preprocess("  foo  bar  ") == "foo bar"
 
-    def test_remove_round_brackets(self):
+    def test_remove_punctuation(self):
         assert preprocess("(a) (b) (c)") == "a b c"
-
-    def test_remove_double_quotes(self):
         assert preprocess('"a" "b" "c"') == "a b c"
+        assert preprocess("[a] [b] [c]") == "a b c"
 
     @pytest.mark.skip(reason="deprecated")
     def test_remove_leading_punctuation(self):
@@ -65,10 +64,6 @@ class TestPreprocess:
         assert preprocess("'tom's 12 o'clock'") == "toms 12 oclock"
 
     @pytest.mark.skip(reason="deprecated")
-    def test_replace_bullet_point(self):
-        assert preprocess("1 - *ab cd - *ef gh") == "1 - . ab cd - . ef gh"
-
-    @pytest.mark.skip(reason="deprecated")
     def test_remove_repeated_quotes(self):
         assert preprocess("1 ''2''' 3") == "1 2 3"
 
@@ -78,3 +73,8 @@ class TestPreprocess:
         assert preprocess("a, b") == "a , b"
         assert preprocess("a. b") == "a . b"
         assert preprocess("a $b") == "a $ b"
+        assert preprocess("a% b") == "a % b"
+        assert preprocess("a+b") == "a + b"
+        assert preprocess("a-b") == "a - b"
+        assert preprocess("a*b") == "a * b"
+        assert preprocess("a/b") == "a / b"
