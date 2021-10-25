@@ -141,13 +141,13 @@ def position_labels(
                 if token_end == j:
                     end = t
                 if start != 0 and end != 0:
+                    if end < start:
+                        raise ValueError(
+                            "end must not come before start."
+                            f"\ncurr={curr}, i={i}, j={j}, start={start}, end={end}, offsets={offset_mapping[k]}"
+                        )
                     found = True
                     break
-            if end < start:
-                raise ValueError(
-                    "end must not come before start."
-                    f"\ncurr={curr}, i={i}, j={j}, start={start}, end={end}, offsets={offset_mapping[k]}"
-                )
         else:
             found = True
         start_positions.append(start)

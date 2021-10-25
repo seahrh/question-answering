@@ -44,8 +44,12 @@ class TestPreprocess:
         assert preprocess('"a" "b" "c"') == "a b c"
 
     @pytest.mark.skip(reason="deprecated")
-    def test_remove_punctuation_at_both_ends(self):
-        assert preprocess(".,-:;–'\" foo .,-:;–'\"") == "foo"
+    def test_remove_leading_punctuation(self):
+        assert preprocess(".,-:;–'\" foo") == "foo"
+
+    @pytest.mark.skip(reason="deprecated")
+    def test_remove_trailing_punctuation(self):
+        assert preprocess("foo .,-:;–'\"") == "foo"
 
     def test_normalize_curly_quotes(self):
         # double quotes are then removed in another step
@@ -73,3 +77,4 @@ class TestPreprocess:
         assert preprocess("a; b") == "a ; b"
         assert preprocess("a, b") == "a , b"
         assert preprocess("a. b") == "a . b"
+        assert preprocess("a $b") == "a $ b"

@@ -39,7 +39,7 @@ def dice_coefficient(
 
 
 REMOVAL_PATTERN = re.compile(r"[\"()]", re.IGNORECASE)
-ISOLATION_PATTERN = re.compile(r"([.,:;]+)", re.IGNORECASE)
+ISOLATION_PATTERN = re.compile(r"([.,:;$]+)", re.IGNORECASE)
 LEADING_PUNCTUATION_PATTERN = re.compile(r"^[.,\-:;–'\"]+", re.IGNORECASE)
 TRAILING_PUNCTUATION_PATTERN = re.compile(r"[.,\-:;–'\"]+$", re.IGNORECASE)
 BULLET_POINT_PATTERN = re.compile(r"[*]+", re.IGNORECASE)
