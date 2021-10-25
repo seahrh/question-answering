@@ -29,6 +29,9 @@ def preprocess(s: str) -> str:
 
 
 def nearest(s: str, t: str, start: int) -> int:
+    """Returns the beginning index of the answer span nearest to start index.
+    If answers spans are found at equal distance on the left and right, return the left.
+    """
     i = start
     d = len(s)
     j, k = -1, -1
@@ -47,9 +50,9 @@ def nearest(s: str, t: str, start: int) -> int:
         return k
     if k == -1:
         return j
-    if start - j < k - start:
-        return j
-    return k
+    if k - start < start - j:
+        return k
+    return j
 
 
 def parse_json_file(filepath: str) -> pd.DataFrame:

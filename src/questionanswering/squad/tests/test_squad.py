@@ -14,6 +14,18 @@ class TestNearest:
         assert nearest(s="9", t="0123456789", start=0) == 9
         assert nearest(s="9", t="0123456789", start=9) == 9
 
+    def test_multiple_spans_exist(self):
+        assert nearest(s="x", t="x123x5678x", start=0) == 0
+        assert nearest(s="x", t="x123x5678x", start=1) == 0
+        assert nearest(s="x", t="x123x5678x", start=2) == 0
+        assert nearest(s="x", t="x123x5678x", start=3) == 4
+        assert nearest(s="x", t="x123x5678x", start=4) == 4
+        assert nearest(s="x", t="x123x5678x", start=5) == 4
+        assert nearest(s="x", t="x123x5678x", start=6) == 4
+        assert nearest(s="x", t="x123x5678x", start=7) == 9
+        assert nearest(s="x", t="x123x5678x", start=8) == 9
+        assert nearest(s="x", t="x123x5678x", start=9) == 9
+
 
 class TestPositionLabels:
     def test_answer_not_exists(self):
