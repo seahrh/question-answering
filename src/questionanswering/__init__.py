@@ -1,10 +1,12 @@
 import os
+import re
 import pathlib
 import logging
 from logging.config import fileConfig
 import pytorch_lightning as pl
+from scml import nlp as snlp
 
-__all__ = ["get_logger", "dice_coefficient", "Trainer"]
+__all__ = ["get_logger", "dice_coefficient", "preprocess", "Trainer"]
 
 
 def get_logger(name: str = None):
@@ -34,6 +36,34 @@ def dice_coefficient(
         range(pred_start, pred_end + 1)
     )
     return 2 * len(intersection) / (t_len + p_len)
+
+
+REMOVAL_PATTERN = re.compile(r"[\"()]", re.IGNORECASE)
+ISOLATION_PATTERN = re.compile(r"([.,:;]+)", re.IGNORECASE)
+LEADING_PUNCTUATION_PATTERN = re.compile(r"^[.,\-:;–'\"]+", re.IGNORECASE)
+TRAILING_PUNCTUATION_PATTERN = re.compile(r"[.,\-:;–'\"]+$", re.IGNORECASE)
+BULLET_POINT_PATTERN = re.compile(r"[*]+", re.IGNORECASE)
+REPEATED_QUOTES_PATTERN = re.compile(r"[']{2,}", re.IGNORECASE)
+ENCLOSURE_PATTERN = re.compile(r"[']+([^']+?)[']+", re.IGNORECASE)
+
+
+def preprocess(s: str) -> str:
+    """Preprocess question, context and answer strings for training."""
+    res: str = snlp.to_str(s)
+    res = res.lower()
+    res = res.replace("‘", "'")  # opening single quote
+    res = res.replace("’", "'")  # closing single quote
+    res = res.replace("“", '"')  # opening double quote
+    res = res.replace("”", '"')  # closing double quote
+    # res = LEADING_PUNCTUATION_PATTERN.sub("", res)
+    # res = TRAILING_PUNCTUATION_PATTERN.sub("", res)
+    # res = REPEATED_QUOTES_PATTERN.sub("", res)
+    # res = ENCLOSURE_PATTERN.sub(r"\1", res)
+    # res = BULLET_POINT_PATTERN.sub(r" . ", res)
+    res = ISOLATION_PATTERN.sub(r" \1 ", res)
+    res = REMOVAL_PATTERN.sub("", res)
+    res = " ".join(res.split())
+    return res
 
 
 class Trainer(pl.Trainer):  # type: ignore

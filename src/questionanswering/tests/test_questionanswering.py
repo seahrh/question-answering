@@ -1,4 +1,5 @@
-from questionanswering import dice_coefficient
+import pytest
+from questionanswering import dice_coefficient, preprocess
 
 
 class TestDiceCoefficient:
@@ -30,3 +31,45 @@ class TestDiceCoefficient:
         assert (
             dice_coefficient(true_start=0, true_end=5, pred_start=4, pred_end=7) == 0.4
         )
+
+
+class TestPreprocess:
+    def test_compress_whitespace(self):
+        assert preprocess("  foo  bar  ") == "foo bar"
+
+    def test_remove_round_brackets(self):
+        assert preprocess("(a) (b) (c)") == "a b c"
+
+    def test_remove_double_quotes(self):
+        assert preprocess('"a" "b" "c"') == "a b c"
+
+    @pytest.mark.skip(reason="deprecated")
+    def test_remove_punctuation_at_both_ends(self):
+        assert preprocess(".,-:;–'\" foo .,-:;–'\"") == "foo"
+
+    def test_normalize_curly_quotes(self):
+        # double quotes are then removed in another step
+        assert preprocess("1 ‘2’ “3” 4") == "1 '2' 3 4"
+
+    @pytest.mark.skip(reason="deprecated")
+    def test_remove_enclosing_single_quotes(self):
+        assert preprocess("'a1'") == "a1"
+        assert preprocess("'a1' 'b2' 'c3'") == "a1 b2 c3"
+        assert preprocess("tom's cat") == "tom's cat"
+        assert preprocess("o'clock") == "o'clock"
+        assert preprocess("'12 o'clock'") == "12 o'clock"
+        assert preprocess("'tom's 12 o'clock'") == "toms 12 oclock"
+
+    @pytest.mark.skip(reason="deprecated")
+    def test_replace_bullet_point(self):
+        assert preprocess("1 - *ab cd - *ef gh") == "1 - . ab cd - . ef gh"
+
+    @pytest.mark.skip(reason="deprecated")
+    def test_remove_repeated_quotes(self):
+        assert preprocess("1 ''2''' 3") == "1 2 3"
+
+    def test_isolate_punctuation(self):
+        assert preprocess("a: b") == "a : b"
+        assert preprocess("a; b") == "a ; b"
+        assert preprocess("a, b") == "a , b"
+        assert preprocess("a. b") == "a . b"

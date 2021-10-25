@@ -1,5 +1,18 @@
 import pytest
-from questionanswering.squad import position_labels
+from questionanswering.squad import position_labels, nearest
+
+
+class TestNearest:
+    def test_span_not_exists(self):
+        assert nearest(s="z", t="0123456789", start=1) == -1
+
+    def test_single_span_exists(self):
+        assert nearest(s="4", t="0123456789", start=0) == 4
+        assert nearest(s="4", t="0123456789", start=9) == 4
+        assert nearest(s="0", t="0123456789", start=0) == 0
+        assert nearest(s="0", t="0123456789", start=9) == 0
+        assert nearest(s="9", t="0123456789", start=0) == 9
+        assert nearest(s="9", t="0123456789", start=9) == 9
 
 
 class TestPositionLabels:

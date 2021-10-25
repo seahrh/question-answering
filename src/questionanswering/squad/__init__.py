@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 import torch
-from scml import nlp as snlp
 from tqdm import tqdm
 from transformers import AutoConfig, AutoModelForQuestionAnswering, AdamW
 
@@ -14,6 +13,7 @@ import questionanswering as qa
 
 __all__ = [
     "preprocess",
+    "nearest",
     "parse_json_file",
     "Dataset",
     "Model",
@@ -25,14 +25,31 @@ log = qa.get_logger()
 
 
 def preprocess(s: str) -> str:
-    """Preprocess question, context and answer strings for training."""
-    res: str = snlp.to_str(s)
-    res = res.replace("‘", "'")  # opening single quote
-    res = res.replace("’", "'")  # closing single quote
-    res = res.replace("“", '"')  # opening double quote
-    res = res.replace("”", '"')  # closing double quote
-    res = " ".join(res.split())
-    return res
+    return qa.preprocess(s)
+
+
+def nearest(s: str, t: str, start: int) -> int:
+    i = start
+    d = len(s)
+    j, k = -1, -1
+    while i >= 0 and j == -1:
+        if s == t[i : i + d]:
+            j = i
+        i -= 1
+    i = start + 1
+    while i + d <= len(t) and k == -1:
+        if s == t[i : i + d]:
+            k = i
+        i += 1
+    if j == -1 and k == -1:
+        return -1
+    if j == -1:
+        return k
+    if k == -1:
+        return j
+    if start - j < k - start:
+        return j
+    return k
 
 
 def parse_json_file(filepath: str) -> pd.DataFrame:
@@ -68,15 +85,25 @@ def parse_json_file(filepath: str) -> pd.DataFrame:
                         "context": context,
                     }
                     i = a["answer_start"]
-                    j = a["answer_start"] + len(row["answer_text"])
-                    while i > 0 and row["answer_text"] != context[i:j]:
+                    d = len(row["answer_text"])
+                    at = row["answer_text"]
+                    j, k = -1, -1
+                    while i >= 0 and j == -1:
+                        if at == context[i : i + d]:
+                            j = i
                         i -= 1
-                        j -= 1
-                    if row["answer_text"] != context[i:j]:
+                    i = a["answer_start"] + 1
+                    while i + d < len(context) and k == -1:
+                        if at == context[i : i + d]:
+                            k = i
+                        i += 1
+                    if j == -1 and k == -1:
                         raise ValueError(
-                            f"answer text must equal answer span. Expecting [{a['text']}] but found [{context[i:j]}]"
+                            f"Cannot find answer inside context. a=[{row['answer_text']}]"
+                            f"\nq={question}\nc={context}"
                         )
-                    row["answer_start"] = i
+                    i = a["answer_start"]
+                    row["answer_start"] = j if i - j < k - i else k
                     rows.append(row)
     df = pd.DataFrame.from_records(rows)
     df["answer_start"] = df["answer_start"].astype(np.int16)
