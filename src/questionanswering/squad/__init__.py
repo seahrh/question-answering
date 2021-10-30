@@ -1,3 +1,4 @@
+import re
 import json
 import pathlib
 from typing import Tuple, List, Union, Dict
@@ -10,6 +11,7 @@ from tqdm import tqdm
 from transformers import AutoConfig, AutoModelForQuestionAnswering, AdamW
 
 import questionanswering as qa
+from scml import nlp as snlp
 
 __all__ = [
     "preprocess",
@@ -32,27 +34,63 @@ def nearest(s: str, t: str, start: int) -> int:
     """Returns the beginning index of the answer span nearest to start index.
     If answers spans are found at equal distance on the left and right, return the left.
     """
-    i = start
-    d = len(s)
-    j, k = -1, -1
-    while i >= 0 and j == -1:
-        if s == t[i : i + d]:
-            j = i
-        i -= 1
-    i = start + 1
-    while i + d <= len(t) and k == -1:
-        if s == t[i : i + d]:
-            k = i
-        i += 1
-    if j == -1 and k == -1:
-        return -1
-    if j == -1:
-        return k
-    if k == -1:
-        return j
-    if k - start < start - j:
-        return k
-    return j
+    gap = len(t)
+    best = -1
+    ps = re.escape(s)
+    if snlp.count_punctuation(s) == 0:
+        ps = f"\\b{ps}\\b"
+    p = re.compile(ps, re.IGNORECASE)
+    for m in p.finditer(t):
+        d = abs(m.start() - start)
+        if d < gap:
+            gap = d
+            best = m.start()
+    return best
+
+
+ALTERNATIVE_ANSWERS: Dict[str, List[str]] = {
+    "1": ["one", "first"],
+    "2": ["two", "second"],
+    "3": ["three", "third"],
+    "4": ["four", "fourth"],
+    "5": ["five", "fifth"],
+    "6": ["six", "sixth"],
+    "7": ["seven", "seventh"],
+    "8": ["eight", "eighth"],
+    "9": ["nine", "ninth"],
+    "10": ["ten", "tenth"],
+    "11": ["eleven", "eleventh"],
+    "12": ["twelve", "twelfth"],
+    "13": ["thirteen", "thirteenth"],
+    "14": ["fourteen", "fourteenth"],
+    "15": ["fifteen", "fifteenth"],
+    "16": ["sixteen", "sixteenth"],
+    "17": ["seventeen", "seventeenth"],
+    "18": ["eighteen", "eighteenth"],
+    "19": ["nineteen", "nineteenth"],
+    "20": ["twenty", "twentieth"],
+    "41": ["forty - one", "forty - first", "41st"],
+    "four": ["fourth"],
+    "six": ["sixth"],
+    "seven": ["seventh"],
+    "ten": ["tenth"],
+}
+
+ANSWER_CORRECTIONS: Dict[str, str] = {
+    "56bf7e603aeaaa14008c9681": "split with luckett and roberson",
+    "56d3ac8e2ccc5a1400d82e1b": "operatic",
+    "56d39a6a59d6e414001467f5": "drone basses",
+    "56cffba5234ae51400d9c1f1": "intuitively",
+    "56cc57466d243a140015ef24": "2010",
+    "56cd5d3a62d2951400fa653e": "manually",
+    "56cd73af62d2951400fa65c4": "one - hundred millionth",
+    "56cd8ffa62d2951400fa6723": "japanese",
+    "56cebbdeaab44d1400b8895c": "a million",
+}
+
+QUESTION_REPLACEMENTS: Dict[str, str] = {
+    "56cc57466d243a140015ef24": "in which year did the sales of iPhone exceed iPod?",
+}
 
 
 def parse_json_file(filepath: str) -> pd.DataFrame:
@@ -67,7 +105,7 @@ def parse_json_file(filepath: str) -> pd.DataFrame:
             for _qa in passage["qas"]:
                 _id = _qa["id"]
                 is_impossible = _qa["is_impossible"]
-                question = preprocess(_qa["question"])
+                question = QUESTION_REPLACEMENTS.get(_id, preprocess(_qa["question"]))
                 if is_impossible:
                     row = {
                         "id": _id,
@@ -80,12 +118,24 @@ def parse_json_file(filepath: str) -> pd.DataFrame:
                     rows.append(row)
                     continue
                 for a in _qa["answers"]:
-                    at = preprocess(a["text"])
-                    i = nearest(s=at, t=context, start=a["answer_start"])
+                    at = ANSWER_CORRECTIONS.get(_id, preprocess(a["text"]))
+                    i = -1
+                    if at in ALTERNATIVE_ANSWERS:
+                        for aa in ALTERNATIVE_ANSWERS[at]:
+                            i = nearest(
+                                s=aa,
+                                t=context,
+                                start=a["answer_start"],
+                            )
+                            if i >= 0:
+                                at = aa
+                                break
+                    if i == -1:
+                        i = nearest(s=at, t=context, start=a["answer_start"])
                     if i == -1:
                         raise ValueError(
                             f"Cannot find answer inside context. a=[{at}]"
-                            f"\nq={question}\nc={context}"
+                            f"\nid={_id}\nq={question}\nc={context}"
                         )
                     rows.append(
                         {

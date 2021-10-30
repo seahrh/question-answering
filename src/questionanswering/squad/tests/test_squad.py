@@ -7,24 +7,24 @@ class TestNearest:
         assert nearest(s="z", t="0123456789", start=1) == -1
 
     def test_single_span_exists(self):
-        assert nearest(s="4", t="0123456789", start=0) == 4
-        assert nearest(s="4", t="0123456789", start=9) == 4
-        assert nearest(s="0", t="0123456789", start=0) == 0
-        assert nearest(s="0", t="0123456789", start=9) == 0
-        assert nearest(s="9", t="0123456789", start=0) == 9
-        assert nearest(s="9", t="0123456789", start=9) == 9
+        assert nearest(s="4", t="0 1 2 3 4 5 6 7 8 9", start=0) == 8
+        assert nearest(s="4", t="0 1 2 3 4 5 6 7 8 9", start=18) == 8
+        assert nearest(s="0", t="0 1 2 3 4 5 6 7 8 9", start=0) == 0
+        assert nearest(s="0", t="0 1 2 3 4 5 6 7 8 9", start=18) == 0
+        assert nearest(s="9", t="0 1 2 3 4 5 6 7 8 9", start=0) == 18
+        assert nearest(s="9", t="0 1 2 3 4 5 6 7 8 9", start=18) == 18
 
     def test_multiple_spans_exist(self):
-        assert nearest(s="x", t="x123x5678x", start=0) == 0
-        assert nearest(s="x", t="x123x5678x", start=1) == 0
-        assert nearest(s="x", t="x123x5678x", start=2) == 0
-        assert nearest(s="x", t="x123x5678x", start=3) == 4
-        assert nearest(s="x", t="x123x5678x", start=4) == 4
-        assert nearest(s="x", t="x123x5678x", start=5) == 4
-        assert nearest(s="x", t="x123x5678x", start=6) == 4
-        assert nearest(s="x", t="x123x5678x", start=7) == 9
-        assert nearest(s="x", t="x123x5678x", start=8) == 9
-        assert nearest(s="x", t="x123x5678x", start=9) == 9
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=0) == 0
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=2) == 0
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=4) == 0
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=6) == 8
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=8) == 8
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=10) == 8
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=12) == 8
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=14) == 18
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=16) == 18
+        assert nearest(s="x", t="x 1 2 3 x 5 6 7 8 x", start=18) == 18
 
 
 class TestPositionLabels:
