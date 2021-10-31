@@ -27,7 +27,10 @@ log = qa.get_logger()
 
 
 def preprocess(s: str) -> str:
-    return qa.preprocess(s)
+    res = qa.preprocess(s)
+    res = re.sub(r"\b(religion)(note)\b", r"\1 \2", res)
+    res = re.sub(r"\b(equanimity)(full)\b", r"\1 \2", res)
+    return res
 
 
 def nearest(s: str, t: str, start: int) -> int:
@@ -37,8 +40,10 @@ def nearest(s: str, t: str, start: int) -> int:
     gap = len(t)
     best = -1
     ps = re.escape(s)
-    if snlp.count_punctuation(s) == 0:
-        ps = f"\\b{ps}\\b"
+    if s[0].isalnum():
+        ps = r"\b" + ps
+    if s[-1].isalnum():
+        ps += r"\b"
     p = re.compile(ps, re.IGNORECASE)
     for m in p.finditer(t):
         d = abs(m.start() - start)
@@ -49,31 +54,43 @@ def nearest(s: str, t: str, start: int) -> int:
 
 
 ALTERNATIVE_ANSWERS: Dict[str, List[str]] = {
-    "1": ["one", "first"],
-    "2": ["two", "second"],
-    "3": ["three", "third"],
-    "4": ["four", "fourth"],
-    "5": ["five", "fifth"],
-    "6": ["six", "sixth"],
-    "7": ["seven", "seventh"],
-    "8": ["eight", "eighth"],
-    "9": ["nine", "ninth"],
-    "10": ["ten", "tenth"],
-    "11": ["eleven", "eleventh"],
-    "12": ["twelve", "twelfth"],
-    "13": ["thirteen", "thirteenth"],
-    "14": ["fourteen", "fourteenth"],
-    "15": ["fifteen", "fifteenth"],
-    "16": ["sixteen", "sixteenth"],
-    "17": ["seventeen", "seventeenth"],
-    "18": ["eighteen", "eighteenth"],
-    "19": ["nineteen", "nineteenth"],
-    "20": ["twenty", "twentieth"],
+    "1": ["one", "first", "1st", "single"],
+    "2": ["two", "second", "2nd", "double", "ii"],
+    "3": ["three", "third", "3rd", "triple", "iii"],
+    "4": ["four", "fourth", "4th"],
+    "5": ["five", "fifth", "5th"],
+    "6": ["six", "sixth", "6th"],
+    "7": ["seven", "seventh", "7th"],
+    "8": ["eight", "eighth", "8th"],
+    "9": ["nine", "ninth", "9th"],
+    "10": ["ten", "tenth", "10th"],
+    "11": ["eleven", "eleventh", "11th"],
+    "12": ["twelve", "twelfth", "12th"],
+    "13": ["thirteen", "thirteenth", "13th"],
+    "14": ["fourteen", "fourteenth", "14th"],
+    "15": ["fifteen", "fifteenth", "15th"],
+    "16": ["sixteen", "sixteenth", "16th"],
+    "17": ["seventeen", "seventeenth", "17th"],
+    "18": ["eighteen", "eighteenth", "18th"],
+    "19": ["nineteen", "nineteenth", "19th"],
+    "20": ["twenty", "twentieth", "20th"],
+    "24": ["twenty - four", "twenty - fourth", "24th"],
     "41": ["forty - one", "forty - first", "41st"],
     "four": ["fourth"],
     "six": ["sixth"],
     "seven": ["seventh"],
     "ten": ["tenth"],
+    "thirteen": ["thirteenth"],
+    "fourteen": ["fourteenth"],
+    "twenty - four": ["twenty - fourth"],
+    "north": ["northern"],
+    "south": ["southern"],
+    "east": ["eastern"],
+    "west": ["western"],
+    "northeast": ["northeastern"],
+    "northwest": ["northwestern"],
+    "southeast": ["southeastern"],
+    "southwest": ["southwestern"],
 }
 
 ANSWER_CORRECTIONS: Dict[str, str] = {
@@ -86,10 +103,42 @@ ANSWER_CORRECTIONS: Dict[str, str] = {
     "56cd73af62d2951400fa65c4": "one - hundred millionth",
     "56cd8ffa62d2951400fa6723": "japanese",
     "56cebbdeaab44d1400b8895c": "a million",
+    "56d1c2d2e7d4791d00902121": "5th century ce",
+    "56db1d2fe7c41114004b4d68": "hairdo",
+    "56d3883859d6e41400146678": "almost a decade",
+    "56d38b4e59d6e414001466d9": "2011",
+    "56d5f9181c85041400946e7d": "fearlessness",
+    "56d5fc2a1c85041400946ea0": "breeds",
+    "56d62e521c85041400946f9f": "emotional",
+    "56d62f3e1c85041400946fa5": "hunting",
+    "56de0abc4396321400ee2563": "islamic",
+    "56df844f56340a1900b29cca": "700 lumens",
+    "56df865956340a1900b29ceb": "daylight factor calculation",
+    "56df95d44a1a83140091eb81": "the greater the apparent saturation or vividness of the object colors",
+    "56dfa6de7aa994140058df9a": "shorter postoperative hospital stays , received fewer negative evaluative comments in nurses' notes , and took fewer potent analegesics",
+    "56dfa6de7aa994140058df9b": "1972 and 1981",
+    "56e4793839bdeb140034794f": "constructed in a manner which is environmentally friendly",
+    "56d4baf92ccc5a1400d8317f": "destiny fulfilled",
+    "56d0e42e17492d1400aab68c": "he lived , taught and founded a monastic order",
+    "56de4adf4396321400ee278e": "blue dashes",
+    "56de8542cffd8e1900b4b9da": "western european powers",
+    "56df2305c65bf219000b3f98": "general electric",
+    "56df5e8e96943c1400a5d44d": "tinker air force base",
+    "56dfb5977aa994140058e02d": "1907–1912",
+    "56df736f5ca0a614008f9a91": "30",
 }
 
 QUESTION_REPLACEMENTS: Dict[str, str] = {
     "56cc57466d243a140015ef24": "in which year did the sales of iPhone exceed iPod?",
+    "56d3883859d6e41400146678": "For how long was American Idol the highest rated reality show on television?",
+    "56d38b4e59d6e414001466d9": "In which year did American Idol win an award for Best Reality Competition?",
+    "56df865956340a1900b29ceb": "What technique considers the amount of daylight received indoors?",
+    "56df95d44a1a83140091eb81": "What is the effect of high GAI value?",
+    "56dfa6de7aa994140058df9a": "What are the medical outcomes for patients with natural scenery?",
+    "56dfa6de7aa994140058df9b": "when was the study conducted by robert ulrich?",
+    "56e4793839bdeb140034794f": "How should a building fulfil the contemporary ethos?",
+    "56d0e42e17492d1400aab68c": "What details of buddha's life that most scholars accept?",
+    "56df5e8e96943c1400a5d44d": "who is the biggest employer in the msa area?",
 }
 
 
