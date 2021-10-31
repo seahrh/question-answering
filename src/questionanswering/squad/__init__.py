@@ -108,7 +108,6 @@ ANSWER_CORRECTIONS: Dict[str, str] = {
     "56df5e8e96943c1400a5d44d": "tinker air force base",
     "56dfb5977aa994140058e02d": "1907–1912",
     "56df736f5ca0a614008f9a91": "30",
-    # "56e032247aa994140058e34b": "ninth arte",
     "56e042487aa994140058e409": "⟨p⟩",
     "56e0bc7b231d4119001ac364": "december 6 , 1957",
     "56e83bdf37bdd419002c44be": "ser",
@@ -123,6 +122,18 @@ ANSWER_CORRECTIONS: Dict[str, str] = {
     "570dfa320b85d914000d7c48": "varies widely between jurisdictions",
     "570ffff5b654c5140001f725": "men did not show any sexual arousal to non - human visual stimuli",
     "571015bea58dae1900cd6877": "overcome immense difficulties in characterizing the sexual orientation of trans men and trans women",
+    "571a275210f8ca1400304f06": "information from the outside world to be sensed in the form of chemical and physical stimuli",
+    "57262473271a42140099d4ed": "the hellenistic period",
+    "5725bc3989a1e219009abda6": "us $ 5 million grant for the international justice mission ijm",
+    "57265693dd62a815002e81ed": "dispense with the appearance of neutrality and use their influence to unfairly influence the outcome of the match for added dramatic impact",
+    "57292b563f37b319004780b1": "battle of the teutoburg forest",
+    "57265e2b5951b619008f70b6": "florida had become a derelict open to the occupancy of every enemy",
+    "572670f2f1498d1400e8dfb6": "first post - reconstruction republican governor , in an upset election",
+    "572670f2f1498d1400e8dfb7": "a white conservative , was elected as the state's first post - reconstruction republican us senator",
+    "5728f8422ca10214002dab4c": "increasing numbers of airlines have began launching direct flights from japan , qatar , taiwan , south korea , germany and singapore",
+    "572908166aef0514001549cb": "privately funded english language schools",
+    "5726d6b55951b619008f7f8e": "place half of poland border along the vistula river , latvia , estonia , finland , and bessarabia in the soviets' sphere of influence",
+    "5726d9dcdd62a815002e9296": "two",
 }
 
 QUESTION_REPLACEMENTS: Dict[str, str] = {
@@ -137,10 +148,14 @@ QUESTION_REPLACEMENTS: Dict[str, str] = {
     "56d0e42e17492d1400aab68c": "What details of buddha's life that most scholars accept?",
     "56df5e8e96943c1400a5d44d": "who is the biggest employer in the msa area?",
     "56f7d4f7aef2371900625c25": "what confers nobility?",
+    "57262473271a42140099d4ed": "when was the peak of greek cultural influence and power?",
+    "5728f8422ca10214002dab4c": "has the travel industry considered making changes to flight plans for myanmar?",
+    "5726d6b55951b619008f7f8e": "what did the soviets get out of the non - aggression pact?",
 }
 
 ANSWER_SUFFIXES: Set[str] = {
     "an",  # european
+    "ary",  # evolutionary
     "i",  # israeli
     "izing",  # localizing
     "ist",  # motorist
