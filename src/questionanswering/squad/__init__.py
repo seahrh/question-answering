@@ -1,7 +1,7 @@
 import re
 import json
 import pathlib
-from typing import Tuple, List, Union, Dict
+from typing import Tuple, List, Union, Dict, Set
 
 import numpy as np
 import pandas as pd
@@ -11,7 +11,7 @@ from tqdm import tqdm
 from transformers import AutoConfig, AutoModelForQuestionAnswering, AdamW
 
 import questionanswering as qa
-from scml import nlp as snlp
+
 
 __all__ = [
     "preprocess",
@@ -28,8 +28,10 @@ log = qa.get_logger()
 
 def preprocess(s: str) -> str:
     res = qa.preprocess(s)
+    res = re.sub(r"full citation needed\b", r"", res)
+    res = re.sub(r"citation needed\b", r"", res)
     res = re.sub(r"\b(religion)(note)\b", r"\1 \2", res)
-    res = re.sub(r"\b(equanimity)(full)\b", r"\1 \2", res)
+    res = re.sub(r"\b(2015)(update)\b", r"\1 \2", res)
     return res
 
 
@@ -74,6 +76,7 @@ ALTERNATIVE_ANSWERS: Dict[str, List[str]] = {
     "18": ["eighteen", "eighteenth", "18th"],
     "19": ["nineteen", "nineteenth", "19th"],
     "20": ["twenty", "twentieth", "20th"],
+    "21": ["twenty - one", "twenty - first", "21st"],
     "24": ["twenty - four", "twenty - fourth", "24th"],
     "41": ["forty - one", "forty - first", "41st"],
     "four": ["fourth"],
@@ -83,35 +86,15 @@ ALTERNATIVE_ANSWERS: Dict[str, List[str]] = {
     "thirteen": ["thirteenth"],
     "fourteen": ["fourteenth"],
     "twenty - four": ["twenty - fourth"],
-    "north": ["northern"],
-    "south": ["southern"],
-    "east": ["eastern"],
-    "west": ["western"],
-    "northeast": ["northeastern"],
-    "northwest": ["northwestern"],
-    "southeast": ["southeastern"],
-    "southwest": ["southwestern"],
 }
 
 ANSWER_CORRECTIONS: Dict[str, str] = {
-    "56bf7e603aeaaa14008c9681": "split with luckett and roberson",
-    "56d3ac8e2ccc5a1400d82e1b": "operatic",
-    "56d39a6a59d6e414001467f5": "drone basses",
-    "56cffba5234ae51400d9c1f1": "intuitively",
     "56cc57466d243a140015ef24": "2010",
-    "56cd5d3a62d2951400fa653e": "manually",
-    "56cd73af62d2951400fa65c4": "one - hundred millionth",
-    "56cd8ffa62d2951400fa6723": "japanese",
     "56cebbdeaab44d1400b8895c": "a million",
     "56d1c2d2e7d4791d00902121": "5th century ce",
     "56db1d2fe7c41114004b4d68": "hairdo",
     "56d3883859d6e41400146678": "almost a decade",
     "56d38b4e59d6e414001466d9": "2011",
-    "56d5f9181c85041400946e7d": "fearlessness",
-    "56d5fc2a1c85041400946ea0": "breeds",
-    "56d62e521c85041400946f9f": "emotional",
-    "56d62f3e1c85041400946fa5": "hunting",
-    "56de0abc4396321400ee2563": "islamic",
     "56df844f56340a1900b29cca": "700 lumens",
     "56df865956340a1900b29ceb": "daylight factor calculation",
     "56df95d44a1a83140091eb81": "the greater the apparent saturation or vividness of the object colors",
@@ -120,12 +103,15 @@ ANSWER_CORRECTIONS: Dict[str, str] = {
     "56e4793839bdeb140034794f": "constructed in a manner which is environmentally friendly",
     "56d4baf92ccc5a1400d8317f": "destiny fulfilled",
     "56d0e42e17492d1400aab68c": "he lived , taught and founded a monastic order",
-    "56de4adf4396321400ee278e": "blue dashes",
     "56de8542cffd8e1900b4b9da": "western european powers",
     "56df2305c65bf219000b3f98": "general electric",
     "56df5e8e96943c1400a5d44d": "tinker air force base",
     "56dfb5977aa994140058e02d": "1907–1912",
     "56df736f5ca0a614008f9a91": "30",
+    "56e032247aa994140058e34b": "ninth arte",
+    "56e042487aa994140058e409": "⟨p⟩",
+    "56e0bc7b231d4119001ac364": "december 6 , 1957",
+    "56e83bdf37bdd419002c44be": "ser",
 }
 
 QUESTION_REPLACEMENTS: Dict[str, str] = {
@@ -139,6 +125,24 @@ QUESTION_REPLACEMENTS: Dict[str, str] = {
     "56e4793839bdeb140034794f": "How should a building fulfil the contemporary ethos?",
     "56d0e42e17492d1400aab68c": "What details of buddha's life that most scholars accept?",
     "56df5e8e96943c1400a5d44d": "who is the biggest employer in the msa area?",
+}
+
+ANSWER_SUFFIXES: Set[str] = {
+    "i",
+    "s",
+    "ly",
+    "er",
+    "ern",
+    "es",
+    "ese",
+    "al",
+    "ness",
+    "tic",
+    "son",
+    "th",
+    "ing",
+    "ic",
+    "time",
 }
 
 
@@ -170,17 +174,25 @@ def parse_json_file(filepath: str) -> pd.DataFrame:
                     at = ANSWER_CORRECTIONS.get(_id, preprocess(a["text"]))
                     i = -1
                     if at in ALTERNATIVE_ANSWERS:
-                        for aa in ALTERNATIVE_ANSWERS[at]:
+                        for alt in ALTERNATIVE_ANSWERS[at]:
                             i = nearest(
-                                s=aa,
+                                s=alt,
                                 t=context,
                                 start=a["answer_start"],
                             )
                             if i >= 0:
-                                at = aa
+                                at = alt
                                 break
                     if i == -1:
                         i = nearest(s=at, t=context, start=a["answer_start"])
+                    # try suffix "ly" e.g. "extremely"
+                    if i == -1:
+                        for suffix in ANSWER_SUFFIXES:
+                            alt = at + suffix
+                            i = nearest(s=alt, t=context, start=a["answer_start"])
+                            if i >= 0:
+                                at = alt
+                                break
                     if i == -1:
                         raise ValueError(
                             f"Cannot find answer inside context. a=[{at}]"
