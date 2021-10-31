@@ -59,7 +59,7 @@ def preprocess(s: str) -> str:
     # res = REPEATED_QUOTES_PATTERN.sub("", res)
     # res = ENCLOSURE_PATTERN.sub(r"\1", res)
     res = ISOLATION_PATTERN.sub(r" \1 ", res)
-    res = REMOVAL_PATTERN.sub("", res)
+    res = REMOVAL_PATTERN.sub(" ", res)
     res = " ".join(res.split())
     return res
 

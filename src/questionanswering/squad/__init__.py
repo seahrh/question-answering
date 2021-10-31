@@ -29,9 +29,9 @@ log = qa.get_logger()
 def preprocess(s: str) -> str:
     res = qa.preprocess(s)
     res = re.sub(r"full citation needed\b", r"", res)
-    res = re.sub(r"citation needed\b", r"", res)
-    res = re.sub(r"\b(religion)(note)\b", r"\1 \2", res)
-    res = re.sub(r"\b(2015)(update)\b", r"\1 \2", res)
+    res = re.sub(r"(citation|clarification) needed\b", r"", res)
+    res = re.sub(r"\b(\w+)(note)\b", r"\1 \2", res)
+    res = re.sub(r"\b(\w+)(update)\b", r"\1 \2", res)
     return res
 
 
@@ -56,29 +56,29 @@ def nearest(s: str, t: str, start: int) -> int:
 
 
 ALTERNATIVE_ANSWERS: Dict[str, List[str]] = {
-    "1": ["one", "first", "1st", "single"],
-    "2": ["two", "second", "2nd", "double", "ii"],
-    "3": ["three", "third", "3rd", "triple", "iii"],
-    "4": ["four", "fourth", "4th"],
-    "5": ["five", "fifth", "5th"],
-    "6": ["six", "sixth", "6th"],
-    "7": ["seven", "seventh", "7th"],
-    "8": ["eight", "eighth", "8th"],
-    "9": ["nine", "ninth", "9th"],
-    "10": ["ten", "tenth", "10th"],
-    "11": ["eleven", "eleventh", "11th"],
-    "12": ["twelve", "twelfth", "12th"],
-    "13": ["thirteen", "thirteenth", "13th"],
-    "14": ["fourteen", "fourteenth", "14th"],
-    "15": ["fifteen", "fifteenth", "15th"],
-    "16": ["sixteen", "sixteenth", "16th"],
-    "17": ["seventeen", "seventeenth", "17th"],
-    "18": ["eighteen", "eighteenth", "18th"],
-    "19": ["nineteen", "nineteenth", "19th"],
-    "20": ["twenty", "twentieth", "20th"],
-    "21": ["twenty - one", "twenty - first", "21st"],
-    "24": ["twenty - four", "twenty - fourth", "24th"],
-    "41": ["forty - one", "forty - first", "41st"],
+    "1": ["one", "first", "single"],
+    "2": ["two", "second", "double", "ii"],
+    "3": ["three", "third", "triple", "iii"],
+    "4": ["four", "fourth"],
+    "5": ["five", "fifth"],
+    "6": ["six", "sixth"],
+    "7": ["seven", "seventh"],
+    "8": ["eight", "eighth"],
+    "9": ["nine", "ninth"],
+    "10": ["ten", "tenth"],
+    "11": ["eleven", "eleventh"],
+    "12": ["twelve", "twelfth"],
+    "13": ["thirteen", "thirteenth"],
+    "14": ["fourteen", "fourteenth"],
+    "15": ["fifteen", "fifteenth"],
+    "16": ["sixteen", "sixteenth"],
+    "17": ["seventeen", "seventeenth"],
+    "18": ["eighteen", "eighteenth"],
+    "19": ["nineteen", "nineteenth"],
+    "20": ["twenty", "twentieth"],
+    "21": ["twenty - one", "twenty - first"],
+    "24": ["twenty - four", "twenty - fourth"],
+    "41": ["forty - one", "forty - first"],
     "four": ["fourth"],
     "six": ["sixth"],
     "seven": ["seventh"],
@@ -108,10 +108,21 @@ ANSWER_CORRECTIONS: Dict[str, str] = {
     "56df5e8e96943c1400a5d44d": "tinker air force base",
     "56dfb5977aa994140058e02d": "1907–1912",
     "56df736f5ca0a614008f9a91": "30",
-    "56e032247aa994140058e34b": "ninth arte",
+    # "56e032247aa994140058e34b": "ninth arte",
     "56e042487aa994140058e409": "⟨p⟩",
     "56e0bc7b231d4119001ac364": "december 6 , 1957",
     "56e83bdf37bdd419002c44be": "ser",
+    "56f7194f3d8e2e1400e3734c": "the word slovo word and the related slava fame and slukh hearing",
+    "56f7d4f7aef2371900625c25": "hereditary juridical status",
+    "56f852d0a6d7ea1400e17569": "not all landed gentry had a hereditary title of nobility",
+    "56fdcd6019033b140034cd8b": "1950s",
+    "5706300775f01819005e7a62": "sync word",
+    "570cee7ffed7b91900d45afe": "infected plant cells form crown gall or root tumors",
+    "570ce1bab3d812140066d2e2": "the start value of a routine is based on the difficulty of the elements the gymnast attempts and whether or not the gymnast meets composition requirements",
+    "570ce94dfed7b91900d45ad0": "external force which the gymnasts have to overcome with their muscle force and has an impact on the gymnasts linear and angular momentum",
+    "570dfa320b85d914000d7c48": "varies widely between jurisdictions",
+    "570ffff5b654c5140001f725": "men did not show any sexual arousal to non - human visual stimuli",
+    "571015bea58dae1900cd6877": "overcome immense difficulties in characterizing the sexual orientation of trans men and trans women",
 }
 
 QUESTION_REPLACEMENTS: Dict[str, str] = {
@@ -125,24 +136,34 @@ QUESTION_REPLACEMENTS: Dict[str, str] = {
     "56e4793839bdeb140034794f": "How should a building fulfil the contemporary ethos?",
     "56d0e42e17492d1400aab68c": "What details of buddha's life that most scholars accept?",
     "56df5e8e96943c1400a5d44d": "who is the biggest employer in the msa area?",
+    "56f7d4f7aef2371900625c25": "what confers nobility?",
 }
 
 ANSWER_SUFFIXES: Set[str] = {
-    "i",
+    "an",  # european
+    "i",  # israeli
+    "izing",  # localizing
+    "ist",  # motorist
+    "ity",  # uniformity
     "s",
     "ly",
+    "ed",  # played
     "er",
-    "ern",
+    "ern",  # northern
     "es",
-    "ese",
+    "ese",  # japanese
     "al",
+    "nd",
     "ness",
     "tic",
+    "rd",
     "son",
+    "st",
     "th",
     "ing",
     "ic",
     "time",
+    "ward",
 }
 
 
