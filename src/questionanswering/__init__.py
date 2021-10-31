@@ -39,7 +39,8 @@ def dice_coefficient(
 
 
 REMOVAL_PATTERN = re.compile(r"[\"()\[\]]", re.IGNORECASE)
-ISOLATION_PATTERN = re.compile(r"([.,:;$%+*/\-])", re.IGNORECASE)
+# includes the normal dash and short dash
+ISOLATION_PATTERN = re.compile(r"([.,:;$%+*/\-–])", re.IGNORECASE)
 LEADING_PUNCTUATION_PATTERN = re.compile(r"^[.,\-:;–'\"]+", re.IGNORECASE)
 TRAILING_PUNCTUATION_PATTERN = re.compile(r"[.,\-:;–'\"]+$", re.IGNORECASE)
 REPEATED_QUOTES_PATTERN = re.compile(r"[']{2,}", re.IGNORECASE)

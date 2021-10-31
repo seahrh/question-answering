@@ -107,7 +107,6 @@ ANSWER_CORRECTIONS: Dict[str, str] = {
     "56de8542cffd8e1900b4b9da": "western european powers",
     "56df2305c65bf219000b3f98": "general electric",
     "56df5e8e96943c1400a5d44d": "tinker air force base",
-    "56dfb5977aa994140058e02d": "1907–1912",
     "56df736f5ca0a614008f9a91": "30",
     "56e042487aa994140058e409": "⟨p⟩",
     "56e0bc7b231d4119001ac364": "december 6 , 1957",
