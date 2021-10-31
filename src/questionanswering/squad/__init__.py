@@ -32,6 +32,7 @@ def preprocess(s: str) -> str:
     res = re.sub(r"(citation|clarification) needed\b", r"", res)
     res = re.sub(r"\b(\w+)(note)\b", r"\1 \2", res)
     res = re.sub(r"\b(\w+)(update)\b", r"\1 \2", res)
+    res = re.sub(r"\b(\w+)(京都)", r"\1 \2", res)
     return res
 
 
@@ -134,6 +135,31 @@ ANSWER_CORRECTIONS: Dict[str, str] = {
     "572908166aef0514001549cb": "privately funded english language schools",
     "5726d6b55951b619008f7f8e": "place half of poland border along the vistula river , latvia , estonia , finland , and bessarabia in the soviets' sphere of influence",
     "5726d9dcdd62a815002e9296": "two",
+    "572783c7f1498d1400e8fa60": "wembley stadium",
+    "5727c1064b864d1900163c87": "the wings of flightless birds and the rudiments of pelvis and leg bones found in some snakes",
+    "572802332ca10214002d9b53": "electronic dance music and hip hop",
+    "5727fc123acd2414000df177": "etonians",
+    "57280b532ca10214002d9c7e": "some people with asthma rarely experience symptoms",
+    "5728384dff5b5019007d9f4e": "evolving relationship between state governments and the federal government",
+    "5728442e2ca10214002da203": "18 % of public spending , 38 % for the regional governments , 13 % for the local councils , and the remaining 31 % for the social security system",
+    "5728b4714b864d1900164c70": "joseph bohmann",
+    "572967351d046914007793ad": "parks , schools , public buildings , proper roads and the other amenities that characterise a modern city",
+    "572a50757a1753140016ae9e": "too much water is drawn into the bowels",
+    "573189d6e6313a140071d066": "science - fiction and adventure",
+    "572f3442b2c2fd1400567f83": "140 million years ago",
+    "572fb6f904bcaa1900d76c27": "not portable",
+    "5730969b396df919000961cc": "dominikos theotokopoulos el greco",
+    "5730a1eb396df9190009622d": "creation of the greek state in 1832",
+    "572fc92904bcaa1900d76d30": "sir dave richards , who was appointed in april 1999",
+    "5730115eb2c2fd14005687e3": "february 5 , 1862",
+    "573326c84776f4190066071f": "300 of which was paid by cambridge university press , 200 by the royal society of london , and 50 apiece by whitehead and russell",
+    "57309ede396df9190009621b": "synthesis of and reaction to the world around it",
+    "57318409e6313a140071cffa": "incans",
+    "57315bf205b4da19006bd0c4": "soviet union",
+    "57315fc6497a881900248e9c": "redhead",
+    "5732a0c6cc179a14009dab9e": "28 july 1800",
+    "5733b06ad058e614000b605c": "15 km southwest of dushanbe",
+    "5734606cacc1501500babe4b": "typically discarded",
 }
 
 QUESTION_REPLACEMENTS: Dict[str, str] = {
@@ -173,6 +199,7 @@ ANSWER_SUFFIXES: Set[str] = {
     "tic",
     "rd",
     "son",
+    "ship",
     "st",
     "th",
     "ing",
