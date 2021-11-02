@@ -1,8 +1,8 @@
+import logging
 import os
 import re
-import pathlib
-import logging
-from logging.config import fileConfig
+import sys
+
 import pytorch_lightning as pl
 from scml import nlp as snlp
 
@@ -10,18 +10,18 @@ __all__ = ["get_logger", "dice_coefficient", "preprocess", "Trainer"]
 
 
 def get_logger(name: str = None):
-    filepath = os.getenv("LOGGING_INI", "")
-    if len(filepath) == 0:
-        p = pathlib.Path(__file__)
-        # parent dir 3 levels up, above "src" dir
-        filepath = str(p.parents[2].joinpath("logging.ini"))
-    p = pathlib.Path(filepath)
-    if not p.is_file():
-        raise ValueError(f"File does not exist: {filepath}")
-    fileConfig(str(p), defaults={"logdir": "tmp"})
     # suppress matplotlib logging
     logging.getLogger(name="matplotlib").setLevel(logging.WARNING)
-    return logging.getLogger(name)
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    sh = logging.StreamHandler(sys.stdout)
+    sh.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "[%(levelname)s|%(filename)s:%(lineno)s] %(asctime)s >> %(message)s"
+    )
+    sh.setFormatter(formatter)
+    logger.addHandler(sh)
+    return logger
 
 
 def dice_coefficient(
