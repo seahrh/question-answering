@@ -159,6 +159,20 @@ ANSWER_CORRECTIONS: Dict[str, str] = {
     "5732a0c6cc179a14009dab9e": "28 july 1800",
     "5733b06ad058e614000b605c": "15 km southwest of dushanbe",
     "5734606cacc1501500babe4b": "typically discarded",
+    # dev set
+    "570d2f5bfed7b91900d45cd3": "victoria constitution act 1855",
+    "57105da9a58dae1900cd69a0": "1562 to 1598",
+    "5729e2316aef0514001550c5": "7 , 000 , 000",
+    "57264991f1498d1400e8db30": "through the port's trade with constantinople , and ports on the black sea",
+    "5728e07e3acd2414000e00eb": "to render certain laws ineffective , to cause their repeal , or to exert pressure to get one's political wishes on some other issue",
+    "5728ebcb3acd2414000e01db": "duty to submit to the punishment prescribed by law , while others believe that defending oneself in court will increase the possibility of changing the unjust law",
+    "5728ec6a4b864d19001650ab": "enter the test site",
+    "5728eef92ca10214002daab4": "mohandas gandhi",
+    "57293bc91d0469140077919c": "korean",
+    "572f609ca23a5019007fc5b2": "summit of finsteraarhorn",
+    "57302cd004bcaa1900d772d8": "march 2003",
+    "57332e48d058e614000b5762": "the red army",
+    "573403394776f419006616dd": "3 , 600",
 }
 
 QUESTION_REPLACEMENTS: Dict[str, str] = {
@@ -188,7 +202,8 @@ ANSWER_SUFFIXES: Set[str] = {
     "s",
     "ly",
     "ed",  # played
-    "er",
+    "er",  # richer
+    "est",  # richest
     "ern",  # northern
     "es",
     "ese",  # japanese
