@@ -79,3 +79,4 @@ class TestPreprocess:
         assert preprocess("a*b") == "a * b"
         assert preprocess("a/b") == "a / b"
         assert preprocess("a–b") == "a – b"
+        assert preprocess("a° b") == "a ° b"
