@@ -234,7 +234,7 @@ def parse_json_file(filepath: str) -> pd.DataFrame:
             context = preprocess(passage["context"])
             for _qa in passage["qas"]:
                 _id = _qa["id"]
-                is_impossible = _qa["is_impossible"]
+                is_impossible: bool = _qa.get("is_impossible", False)
                 question = QUESTION_REPLACEMENTS.get(_id, preprocess(_qa["question"]))
                 if is_impossible:
                     row = {
